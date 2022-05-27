@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from logging.config import valid_ident
+from ntpath import join
 import rospy
 from geometry_msgs.msg import Twist
 import sys, select, os
@@ -72,10 +73,15 @@ msg = """
 Control Your TurtleBot3!
 ---------------------------
 Moving around:
-        w
-   a    s    d
-        x
+        8
+   4    5    6
+        2
 
+1 -> home pose
+0 -> extend arm
+
+f -> gripper open
+g -> gripper close
 w/x : increase/decrease linear velocity (Burger : ~ 0.22, Waffle and Waffle Pi : ~ 0.26)
 a/d : increase/decrease angular velocity (Burger : ~ 2.84, Waffle and Waffle Pi : ~ 1.82)
 
@@ -183,6 +189,8 @@ if __name__=="__main__":
     control_linear_vel  = 0.0
     control_angular_vel = 0.0
     joint_values = arm.get_current_joint_values() #How to get joint states
+    joint_gripper = gripper.get_current_joint_values() # gripper value
+    joint_gripper[0] = 0.010
     joint_values[0] = 0.0
     joint_values[1] = 0.0
     joint_values[2] = 0.0
@@ -215,24 +223,24 @@ if __name__=="__main__":
                 control_angular_vel = 0.0
                 print(vels(target_linear_vel, target_angular_vel))
             elif key == 'g':
-                joint_values = arm.get_current_joint_values()
-                joint_values[0] = 0.010
-                arm.go(joints=joint_values, wait=True)
+                joint_gripper = gripper.get_current_joint_values()
+                joint_gripper[0] = 0.010
+                gripper.go(joints=joint_gripper, wait=True)
                 rospy.sleep(5)
                 arm.stop()
                 print("Gripper opened")
                 #Please call this if you are getting jerky movements -tip from TA
-                #arm.clear_pose_targets()
+                gripper.clear_pose_targets()
                 #gripper open
             elif key == 'f':
-                joint_values = arm.get_current_joint_values()
-                joint_values[0] = -0.010
-                arm.go(joints=joint_values, wait=True)
+                joint_gripper = gripper.get_current_joint_values()
+                joint_gripper[0] = -0.010
+                gripper.go(joints=joint_gripper, wait=True)
                 rospy.sleep(5)
                 arm.stop()
                 print("Gripper closed")
                 #Please call this if you are getting jerky movements -tip from TA
-                #arm.clear_pose_targets()
+                gripper.clear_pose_targets()
                 #gripper close
             elif key == '0':
                 joint_values = arm.get_current_joint_values()
